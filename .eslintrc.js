@@ -31,4 +31,12 @@ module.exports = {
 			typescript: {},
 		},
 	},
+	overrides: [
+		{
+			files: ['**/*.test.ts'],
+			env: {
+				jest: true,
+			},
+		},
+	],
 };
