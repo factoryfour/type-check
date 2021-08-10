@@ -1,5 +1,5 @@
 {
-  "name": "type-check",
+  "name": "@factoryfour/type-check",
   "version": "0.1.0",
   "description": "Checking types in TypeScript made easy",
   "main": "src/index.ts",
