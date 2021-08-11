@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build-library": "scripts/build.sh",
+    "prepare": "yarn build-library",
     "lint": "eslint . --ext ts",
     "test": "jest"
   },
