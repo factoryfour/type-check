@@ -11,14 +11,14 @@ import {
 
 import {
 	oneOf,
-	oneOfLiterals,
+	literal,
 	optional,
 	nullable,
 	arrayOf,
 	objectOf,
 } from './combiners';
 
-import { structure } from './structure';
+import { structure, tuple } from './structure';
 
 export {
 	isUnknown,
@@ -30,12 +30,13 @@ export {
 	isObject,
 	isArray,
 	oneOf,
-	oneOfLiterals,
+	literal,
 	optional,
 	nullable,
 	arrayOf,
 	objectOf,
 	structure,
+	tuple,
 };
 
 export default {
@@ -48,10 +49,11 @@ export default {
 	isObject,
 	isArray,
 	oneOf,
-	oneOfLiterals,
+	literal,
 	optional,
 	nullable,
 	arrayOf,
 	objectOf,
 	structure,
+	tuple,
 };

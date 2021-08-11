@@ -5,7 +5,7 @@ import {
 	nullable,
 	objectOf,
 	oneOf,
-	oneOfLiterals,
+	literal,
 	optional,
 } from '../src';
 
@@ -23,9 +23,9 @@ describe('oneOf', () => {
 	});
 });
 
-describe('oneOfLiterals', () => {
+describe('literal', () => {
 	it('returns true if it matches one of the passed in literals', () => {
-		const isFooBar = oneOfLiterals(['foo', 'bar']);
+		const isFooBar = literal('foo', 'bar');
 
 		expect(isFooBar(5)).toBe(false);
 		expect(isFooBar(false)).toBe(false);

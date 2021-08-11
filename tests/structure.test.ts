@@ -5,11 +5,12 @@ import {
 	isString,
 	nullable,
 	oneOf,
-	oneOfLiterals,
+	literal,
 	optional,
 	structure,
 	isNull,
 	isUndefined,
+	tuple,
 } from '../src';
 
 // Specifying target type is optional for structure, but it massively
@@ -31,7 +32,7 @@ describe('structure', () => {
 			baz: structure({
 				a: optional(arrayOf(oneOf(isNumber, isBoolean))),
 			}),
-			type: oneOfLiterals(['foo', 'bar']),
+			type: literal('foo', 'bar'),
 		});
 
 		expect(isTargetType(5)).toBe(false);
@@ -125,7 +126,7 @@ describe('structure', () => {
 			baz: structure({
 				a: optional(arrayOf(oneOf(isNumber, isBoolean))),
 			}),
-			type: oneOfLiterals(['foo', 'bar']),
+			type: literal('foo', 'bar'),
 		});
 
 		// Since `number` and `null` are subsets of `null | number`,
@@ -137,7 +138,7 @@ describe('structure', () => {
 			baz: structure({
 				a: arrayOf(isNumber),
 			}),
-			type: oneOfLiterals(['foo']),
+			type: literal('foo'),
 		});
 
 		const isTargetTypeB = structure<TargetType>({
@@ -146,7 +147,7 @@ describe('structure', () => {
 			baz: structure({
 				a: isUndefined,
 			}),
-			type: oneOfLiterals(['bar']),
+			type: literal('bar'),
 		});
 
 		const structFull = {
@@ -185,5 +186,73 @@ describe('structure', () => {
 		expect(isTargetTypeB(structFull)).toBe(false);
 		expect(isTargetTypeB(structA)).toBe(false);
 		expect(isTargetTypeB(structB)).toBe(true);
+	});
+});
+
+// Specifying target type is optional for structure, but it massively
+// helps by automatically pointing out mistakes in your matcher
+type TargetTuple = [string, number | null | 'foo', number[] | undefined];
+
+describe('tuple', () => {
+	it('returns true if array of desired shape', () => {
+		const isTargetTuple = tuple<TargetTuple>(
+			isString,
+			oneOf(isNumber, isNull, literal('foo')),
+			optional(arrayOf(isNumber)),
+		);
+
+		expect(isTargetTuple(5)).toBe(false);
+		expect(isTargetTuple(false)).toBe(false);
+		expect(isTargetTuple(undefined)).toBe(false);
+		expect(isTargetTuple(null)).toBe(false);
+		expect(isTargetTuple('foo')).toBe(false);
+		expect(isTargetTuple({ a: 5 })).toBe(false);
+		expect(isTargetTuple([3, 4, 5])).toBe(false);
+
+		expect(isTargetTuple(['a', 5, [1, 2, 3]])).toBe(true);
+		expect(isTargetTuple(['a', null, undefined])).toBe(true);
+		expect(isTargetTuple(['a', 'foo', undefined])).toBe(true);
+
+		expect(isTargetTuple(['a', 'bar', undefined])).toBe(false);
+		expect(isTargetTuple(['a', 'foo', ['a']])).toBe(false);
+	});
+
+	it('still compiles with tighter matching than needed', () => {
+		const isTargetTupleFull = tuple<TargetTuple>(
+			isString,
+			oneOf(isNumber, isNull, literal('foo')),
+			optional(arrayOf(isNumber)),
+		);
+
+		// Since `number` and `null` are subsets of `null | number`,
+		// isNumber and isNull should both work as a replacement.
+		// Same goes with any union type
+		const isTargetTupleA = tuple<TargetTuple>(
+			isString,
+			isNumber,
+			tuple(isNumber, isNumber),
+		);
+
+		const isTargetTupleB = tuple<TargetTuple>(
+			isString,
+			isNull,
+			isUndefined,
+		);
+
+		const tupleFull = ['a', 'foo', [1, 2, 3]];
+		const tupleA = ['a', 5, [1, 2]];
+		const tupleB = ['a', null, undefined];
+
+		expect(isTargetTupleFull(tupleFull)).toBe(true);
+		expect(isTargetTupleFull(tupleA)).toBe(true);
+		expect(isTargetTupleFull(tupleB)).toBe(true);
+
+		expect(isTargetTupleA(tupleFull)).toBe(false);
+		expect(isTargetTupleA(tupleA)).toBe(true);
+		expect(isTargetTupleA(tupleB)).toBe(false);
+
+		expect(isTargetTupleB(tupleFull)).toBe(false);
+		expect(isTargetTupleB(tupleA)).toBe(false);
+		expect(isTargetTupleB(tupleB)).toBe(true);
 	});
 });

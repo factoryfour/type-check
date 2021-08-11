@@ -1,15 +1,14 @@
 import { isArray, isNull, isObject, isUndefined } from './basic';
 
-export function oneOf<T1, T2>(
-	isChildType1: (value: unknown) => value is T1,
-	isChildType2: (value: unknown) => value is T2,
-): (value: unknown) => value is T1 | T2 {
-	return (value): value is T1 | T2 =>
-		isChildType1(value) || isChildType2(value);
+export function oneOf<T extends unknown[]>(
+	...isChildTypes: { [P in keyof T]: (value: unknown) => value is T[P] }
+): (value: unknown) => value is T[number] {
+	return (value): value is T[number] =>
+		isChildTypes.some((check) => check(value));
 }
 
-export function oneOfLiterals<T extends string>(
-	literals: readonly T[],
+export function literal<T extends string>(
+	...literals: readonly T[]
 ): (value: unknown) => value is T {
 	return (value): value is T => literals.some((v) => v === value);
 }
