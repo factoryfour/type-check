@@ -31,6 +31,7 @@ module.exports = {
 			typescript: {},
 		},
 	},
+	ignorePatterns: ['lib'],
 	overrides: [
 		{
 			files: ['**/*.test.ts'],

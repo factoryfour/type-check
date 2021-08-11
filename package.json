@@ -1,9 +1,14 @@
 {
   "name": "@factoryfour/type-check",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Checking types in TypeScript made easy",
-  "main": "src/index.ts",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib/src"
+  ],
   "scripts": {
+    "build-library": "scripts/build.sh",
     "lint": "eslint . --ext ts",
     "test": "jest"
   },
