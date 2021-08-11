@@ -1,6 +1,6 @@
 {
   "name": "@factoryfour/type-check",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Checking types in TypeScript made easy",
   "main": "src/index.ts",
   "scripts": {
