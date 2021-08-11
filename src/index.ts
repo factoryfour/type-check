@@ -16,8 +16,9 @@ import {
 	nullable,
 	arrayOf,
 	objectOf,
-	structure,
 } from './combiners';
+
+import { structure } from './structure';
 
 export {
 	isUnknown,
