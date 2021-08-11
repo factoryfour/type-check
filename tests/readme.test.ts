@@ -15,7 +15,7 @@ import {
 	optional,
 	structure,
 	tuple,
-} from '../src';
+} from '../index';
 
 type ApiResponse = {
 	header: {

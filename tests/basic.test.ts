@@ -7,7 +7,7 @@ import {
 	isBoolean,
 	isObject,
 	isArray,
-} from '../src';
+} from '../index';
 
 describe('isUnknown', () => {
 	it('always returns true', () => {

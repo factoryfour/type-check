@@ -11,7 +11,7 @@ import {
 	isNull,
 	isUndefined,
 	tuple,
-} from '../src';
+} from '../index';
 
 // Specifying target type is optional for structure, but it massively
 // helps by automatically pointing out mistakes in your matcher

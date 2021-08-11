@@ -7,7 +7,7 @@ import {
 	oneOf,
 	literal,
 	optional,
-} from '../src';
+} from '../index';
 
 describe('oneOf', () => {
 	it('returns true if either of the input types', () => {
