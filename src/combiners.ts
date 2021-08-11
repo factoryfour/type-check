@@ -7,7 +7,7 @@ export function oneOf<T extends unknown[]>(
 		isChildTypes.some((check) => check(value));
 }
 
-export function literal<T extends string>(
+export function literal<T extends string | number | boolean>(
 	...literals: readonly T[]
 ): (value: unknown) => value is T {
 	return (value): value is T => literals.some((v) => v === value);
