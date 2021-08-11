@@ -1,0 +1,30 @@
+{
+  "name": "@factoryfour/type-check",
+  "version": "0.1.0",
+  "description": "Checking types in TypeScript made easy",
+  "main": "src/index.ts",
+  "scripts": {
+    "lint": "eslint . --ext ts",
+    "test": "jest"
+  },
+  "repository": "git@github.com:factoryfour/type-check.git",
+  "author": "Adnan Ademovic <adnan.ademovic@factoryfour.com>",
+  "license": "MIT",
+  "peerDependencies": {
+    "typescript": "^4.3.5"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.29.1",
+    "@typescript-eslint/parser": "^4.29.1",
+    "@types/jest": "^26.0.24",
+    "eslint": "^7.32.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.24.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "jest": "^27.0.6",
+    "prettier": "^2.2.1",
+    "ts-jest": "^27.0.4",
+    "typescript": "^4.3.5"
+  }
+}
