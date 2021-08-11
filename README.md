@@ -75,9 +75,9 @@ compile perfectly fine, but not cover all cases of API responses.
 ```typescript
 const stillIsApiResponse = structure<ApiResponse>({
 	header: structure({
-		success: isBoolean,
+		success: literal(false),
 		tags: tuple(isString, isString),
-		code: tuple(isNumber, isString),
+		code: tuple(literal(404), isString),
 	}),
 	data: arrayOf(
 		structure({
@@ -91,5 +91,56 @@ const stillIsApiResponse = structure<ApiResponse>({
 			extra: isUnknown,
 		}),
 	),
+});
+```
+
+Any type checking function can be passed in. The checker doesn't need to be built out of functions from
+the library. Code below will work.
+
+```typescript
+type InnerType = {
+	a: string;
+};
+
+type OuterType = {
+	b: InnerType;
+};
+
+const isInnerType = structure<InnerType>({
+	a: isString,
+});
+
+// Also ensures nothing else is in there
+const customIsInnerType = (data: unknown): data is InnerType => {
+	if (!isObject(data)) {
+		return false;
+	}
+	if (Object.keys(data).length !== 1) {
+		return false;
+	}
+	return isString(data.a);
+};
+
+// Same as above, but a bit cleaner
+const customIsInnerType2 = (data: unknown): data is InnerType => {
+	return isInnerType(data) && Object.keys(data).length === 1;
+};
+
+const isOuterType0 = structure<OuterType>({
+	b: structure({
+		a: isString,
+	}),
+});
+
+const isOuterType1 = structure<OuterType>({
+	b: isInnerType,
+});
+
+const isOuterType2 = structure<OuterType>({
+	b: customIsInnerType,
+});
+
+const isOuterType3 = structure<OuterType>({
+	b: customIsInnerType2,
 });
 ```
