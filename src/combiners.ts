@@ -12,7 +12,13 @@ export function oneOf<T extends unknown[]>(
 			if (result.isOk(child)) {
 				return child;
 			}
-			failedTypes.push(child.expected);
+			if (child.path.length > 0) {
+				failedTypes.push(
+					`${child.expected} at ${child.path.join('.')}`,
+				);
+			} else {
+				failedTypes.push(child.expected);
+			}
 		}
 		return castErr(failedTypes.join(' | '), value);
 	};
