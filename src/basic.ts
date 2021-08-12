@@ -41,35 +41,35 @@ export function asNull(value: unknown): CastResult<null> {
 	if (isNull(value)) {
 		return ok(value);
 	}
-	return castErr('Value is not of type null', '', 'null', value);
+	return castErr('null', value);
 }
 
 export function asUndefined(value: unknown): CastResult<undefined> {
 	if (isUndefined(value)) {
 		return ok(value);
 	}
-	return castErr('Value is not of type undefined', '', 'undefined', value);
+	return castErr('undefined', value);
 }
 
 export function asString(value: unknown): CastResult<string> {
 	if (isString(value)) {
 		return ok(value);
 	}
-	return castErr('Value is not of type string', '', 'string', value);
+	return castErr('string', value);
 }
 
 export function asNumber(value: unknown): CastResult<number> {
 	if (isNumber(value)) {
 		return ok(value);
 	}
-	return castErr('Value is not of type number', '', 'number', value);
+	return castErr('number', value);
 }
 
 export function asBoolean(value: unknown): CastResult<boolean> {
 	if (isBoolean(value)) {
 		return ok(value);
 	}
-	return castErr('Value is not of type boolean', '', 'boolean', value);
+	return castErr('boolean', value);
 }
 
 export function asObject(
@@ -78,12 +78,12 @@ export function asObject(
 	if (isObject(value)) {
 		return ok(value);
 	}
-	return castErr('Value is not of type object', '', 'object', value);
+	return castErr('object', value);
 }
 
 export function asArray(value: unknown): CastResult<unknown[]> {
 	if (isArray(value)) {
 		return ok(value);
 	}
-	return castErr('Value is not of type array', '', 'array', value);
+	return castErr('array', value);
 }

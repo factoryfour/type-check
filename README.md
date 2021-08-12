@@ -6,8 +6,8 @@ If given the correct annotations, the compiler itself will exactly instruct you 
 your code for the type checker to match.
 
 Beware, there is no way to prevent too tight type checks. So if there is a field that is of type
-`number | null`, both `isNull` and `isNumber` will be accepted, when in reality you'd want to use
-`oneOf(isNull, isNumber)`, or more tersely `nullable(isNumber)`, which is just syntactic sugar for
+`number | null`, both `asNull` and `asNumber` will be accepted, when in reality you'd want to use
+`oneOf(asNull, asNumber)`, or more tersely `nullable(asNumber)`, which is just syntactic sugar for
 `oneOf`.
 
 ## Examples
@@ -33,24 +33,24 @@ type ApiResponse = {
 	}[];
 };
 
-const isApiResponse = structure<ApiResponse>({
+const asApiResponse = structure<ApiResponse>({
 	header: structure({
-		success: isBoolean,
-		tags: arrayOf(isString),
-		code: tuple(isNumber, isString),
+		success: asBoolean,
+		tags: arrayOf(asString),
+		code: tuple(asNumber, asString),
 	}),
 	data: arrayOf(
 		structure({
 			direction: literal('left', 'right'),
-			angle: oneOf(isNumber, literal('unknown')),
-			arguments: objectOf(isString),
-			comment: optional(isString),
+			angle: oneOf(asNumber, literal('unknown')),
+			arguments: objectOf(asString),
+			comment: optional(asString),
 			user: nullable(
 				structure({
-					name: isString,
+					name: asString,
 				}),
 			),
-			extra: isUnknown,
+			extra: asUnknown,
 		}),
 	),
 });
@@ -61,9 +61,30 @@ function iWantAnApiResponse(value: ApiResponse) {
 
 iWantAnApiResponse(unknownData) // compiler error
 
-if (isApiResponse(unknownData)) {
-	iWantAnApiResponse(unknownData);
+const apiResponseResult = asApiResponse(unknownData);
+if (isOk(apiResponseResult)) {
+	iWantAnApiResponse(apiResponseResult.value);
 }
+```
+
+Error messages provide exact information where things went wrong.
+
+```typescript
+const valueWithBadHeader = {
+    header: {
+        success: true,
+        tags: ['a', 'b', 3],
+        code: [200, 'success'],
+    },
+    data: [],
+};
+expect(asApiResponse(valueWithBadHeader)).toStrictEqual({
+    ok: false,
+    errorMessage: "Value at 'header.tags.2' is not of type 'string'",
+    path: ['header', 'tags', 2],
+    expected: 'string',
+    received: 3,
+});
 ```
 
 Specifying the exact type (like in `structure<ApiResponse>`) allows the compiler to match all the types.
@@ -73,22 +94,22 @@ you'll notice the structure it matches is a subset of values that `ApiResponse` 
 compile perfectly fine, but not cover all cases of API responses.
 
 ```typescript
-const stillIsApiResponse = structure<ApiResponse>({
+const stillAsApiResponse = structure<ApiResponse>({
 	header: structure({
 		success: literal(false),
-		tags: tuple(isString, isString),
-		code: tuple(literal(404), isString),
+		tags: tuple(asString, asString),
+		code: tuple(literal(404), asString),
 	}),
 	data: arrayOf(
 		structure({
 			direction: literal('left'),
-			angle: isNumber,
+			angle: asNumber,
 			arguments: structure({
-				someKey: isString,
+				someKey: asString,
 			}),
-			comment: isUndefined,
-			user: isNull,
-			extra: isUnknown,
+			comment: asUndefined,
+			user: asNull,
+			extra: asUnknown,
 		}),
 	),
 });
@@ -106,41 +127,36 @@ type OuterType = {
 	b: InnerType;
 };
 
-const isInnerType = structure<InnerType>({
-	a: isString,
+const asInnerType = structure<InnerType>({
+	a: asString,
 });
 
 // Also ensures nothing else is in there
-const customIsInnerType = (data: unknown): data is InnerType => {
-	if (!isObject(data)) {
-		return false;
+const customIsInnerType = (data: unknown): CastResult<InnerType> => {
+	const dataObjResult = asObject(data);
+	if (isErr(dataObjResult)) {
+		return dataObjResult;
 	}
-	if (Object.keys(data).length !== 1) {
-		return false;
+	if (Object.keys(dataObjResult.value).length !== 1) {
+		return castErr('{ a: string } without extra keys', data);
 	}
-	return isString(data.a);
+	const aFieldResult = asString(dataObjResult.value.a);
+	if (isErr(aFieldResult)) {
+		return castErrChain(aFieldResult, 'a');
+	}
+	return ok(data as InnerType);
 };
 
 // Same as above, but a bit cleaner
-const customIsInnerType2 = (data: unknown): data is InnerType => {
-	return isInnerType(data) && Object.keys(data).length === 1;
+const customIsInnerType2 = (data: unknown): CastResult<InnerType> => {
+	const typedDataResult = asInnerType(data);
+	if (isErr(typedDataResult)) {
+		return typedDataResult;
+	}
+	const output = typedDataResult.value;
+	if (Object.keys(output).length !== 1) {
+		return castErr('{ a: string } without extra keys', data);
+	}
+	return ok(output);
 };
-
-const isOuterType0 = structure<OuterType>({
-	b: structure({
-		a: isString,
-	}),
-});
-
-const isOuterType1 = structure<OuterType>({
-	b: isInnerType,
-});
-
-const isOuterType2 = structure<OuterType>({
-	b: customIsInnerType,
-});
-
-const isOuterType3 = structure<OuterType>({
-	b: customIsInnerType2,
-});
 ```

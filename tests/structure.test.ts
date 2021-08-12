@@ -1,16 +1,17 @@
 import {
 	arrayOf,
-	isBoolean,
-	isNumber,
-	isString,
+	asBoolean,
+	asNumber,
+	asString,
 	nullable,
 	oneOf,
 	literal,
 	optional,
 	structure,
-	isNull,
-	isUndefined,
+	asNull,
+	asUndefined,
 	tuple,
+	ok,
 } from '../index';
 
 // Specifying target type is optional for structure, but it massively
@@ -26,126 +27,119 @@ type TargetType = {
 
 describe('structure', () => {
 	it('returns true if object of desired shape', () => {
-		const isTargetType = structure<TargetType>({
-			foo: isString,
-			bar: nullable(isNumber),
+		const asTargetType = structure<TargetType>({
+			foo: asString,
+			bar: nullable(asNumber),
 			baz: structure({
-				a: optional(arrayOf(oneOf(isNumber, isBoolean))),
+				a: optional(arrayOf(oneOf(asNumber, asBoolean))),
 			}),
 			type: literal('foo', 'bar'),
 		});
 
-		expect(isTargetType(5)).toBe(false);
-		expect(isTargetType(false)).toBe(false);
-		expect(isTargetType(undefined)).toBe(false);
-		expect(isTargetType(null)).toBe(false);
-		expect(isTargetType('foo')).toBe(false);
-		expect(isTargetType({ a: 5 })).toBe(false);
-		expect(isTargetType([3, 4, 5])).toBe(false);
+		expect(asTargetType(5).ok).toBe(false);
+		expect(asTargetType(false).ok).toBe(false);
+		expect(asTargetType(undefined).ok).toBe(false);
+		expect(asTargetType(null).ok).toBe(false);
+		expect(asTargetType('foo').ok).toBe(false);
+		expect(asTargetType({ a: 5 }).ok).toBe(false);
+		expect(asTargetType([3, 4, 5]).ok).toBe(false);
 
-		expect(
-			isTargetType({
-				foo: 'a',
-				bar: 5,
-				baz: {
-					a: [1, 2, false],
-				},
-				type: 'bar',
-			}),
-		).toBe(true);
+		const goodStruct1 = {
+			foo: 'a',
+			bar: 5,
+			baz: {
+				a: [1, 2, false],
+			},
+			type: 'bar',
+		};
+		expect(asTargetType(goodStruct1)).toStrictEqual(ok(goodStruct1));
 
-		expect(
-			isTargetType({
-				foo: 'a',
-				bar: null,
-				baz: {
-					a: [1, 2, false],
-				},
-				type: 'bar',
-			}),
-		).toBe(true);
+		const goodStruct2 = {
+			foo: 'a',
+			bar: null,
+			baz: {
+				a: [1, 2, false],
+			},
+			type: 'bar',
+		};
+		expect(asTargetType(goodStruct2)).toStrictEqual(ok(goodStruct2));
 
-		expect(
-			isTargetType({
-				foo: 'a',
-				bar: 5,
-				baz: {
-					a: undefined,
-				},
-				type: 'bar',
-			}),
-		).toBe(true);
+		const goodStruct3 = {
+			foo: 'a',
+			bar: 5,
+			baz: {
+				a: undefined,
+			},
+			type: 'bar',
+		};
+		expect(asTargetType(goodStruct3)).toStrictEqual(ok(goodStruct3));
 
-		expect(
-			isTargetType({
-				foo: 'a',
-				bar: 5,
-				baz: {
-					a: [1, 2, false],
-				},
-				type: 'bar',
-			}),
-		).toBe(true);
+		const goodStruct4 = {
+			foo: 'a',
+			bar: 5,
+			baz: {
+				a: [1, 2, false],
+			},
+			type: 'bar',
+		};
+		expect(asTargetType(goodStruct4)).toStrictEqual(ok(goodStruct4));
 
-		expect(
-			isTargetType({
-				foo: 'b',
-				bar: null,
-				baz: {
-					a: undefined,
-				},
-				type: 'foo',
-			}),
-		).toBe(true);
+		const goodStruct5 = {
+			foo: 'b',
+			bar: null,
+			baz: {
+				a: undefined,
+			},
+			type: 'foo',
+		};
+		expect(asTargetType(goodStruct5)).toStrictEqual(ok(goodStruct5));
 
-		expect(
-			isTargetType({
-				foo: 'b',
-				bar: null,
-				baz: {},
-				type: 'foo',
-			}),
-		).toBe(true);
+		const goodStruct6 = {
+			foo: 'b',
+			bar: null,
+			baz: {},
+			type: 'foo',
+		};
+		expect(asTargetType(goodStruct6)).toStrictEqual(ok(goodStruct6));
 
-		expect(
-			isTargetType({
-				foo: 5,
-				bar: null,
-				baz: {
-					a: undefined,
-				},
-				type: 'baz',
-			}),
-		).toBe(false);
+		const badStruct1 = {
+			foo: 5,
+			bar: null,
+			baz: {
+				a: undefined,
+			},
+			type: 'baz',
+		};
+		expect(asTargetType(badStruct1).ok).toBe(false);
 	});
 
 	it('still compiles with tighter matching than needed', () => {
-		const isTargetTypeFull = structure<TargetType>({
-			foo: isString,
-			bar: nullable(isNumber),
+		const asTargetTypeFull = structure<TargetType>({
+			foo: asString,
+			bar: nullable(asNumber),
 			baz: structure({
-				a: optional(arrayOf(oneOf(isNumber, isBoolean))),
+				a: optional(arrayOf(oneOf(asNumber, asBoolean))),
 			}),
 			type: literal('foo', 'bar'),
 		});
 
 		// Since `number` and `null` are subsets of `null | number`,
-		// isNumber and isNull should both work as a replacement.
+		// asNumber and asNull should both work as a replacement.
 		// Same goes with any union type
-		const isTargetTypeA = structure<TargetType>({
-			foo: isString,
-			bar: isNumber,
+		const asTargetTypeA = structure<TargetType>({
+			foo: asString,
+			bar: asNumber,
 			baz: structure({
-				a: arrayOf(isNumber),
+				a: arrayOf(asNumber),
 			}),
 			type: literal('foo'),
 		});
 
-		const isTargetTypeB = structure<TargetType>({
-			foo: isString,
-			bar: isNull,
+		const asTargetTypeB = structure<TargetType>({
+			foo: asString,
+			bar: asNull,
 			baz: structure({
-				a: isUndefined,
+				a: asUndefined,
 			}),
 			type: literal('bar'),
 		});
@@ -175,17 +169,17 @@ describe('structure', () => {
 			type: 'bar',
 		};
 
-		expect(isTargetTypeFull(structFull)).toBe(true);
-		expect(isTargetTypeFull(structA)).toBe(true);
-		expect(isTargetTypeFull(structB)).toBe(true);
+		expect(asTargetTypeFull(structFull)).toStrictEqual(ok(structFull));
+		expect(asTargetTypeFull(structA)).toStrictEqual(ok(structA));
+		expect(asTargetTypeFull(structB)).toStrictEqual(ok(structB));
 
-		expect(isTargetTypeA(structFull)).toBe(false);
-		expect(isTargetTypeA(structA)).toBe(true);
-		expect(isTargetTypeA(structB)).toBe(false);
+		expect(asTargetTypeA(structFull).ok).toBe(false);
+		expect(asTargetTypeA(structA)).toStrictEqual(ok(structA));
+		expect(asTargetTypeA(structB).ok).toBe(false);
 
-		expect(isTargetTypeB(structFull)).toBe(false);
-		expect(isTargetTypeB(structA)).toBe(false);
-		expect(isTargetTypeB(structB)).toBe(true);
+		expect(asTargetTypeB(structFull).ok).toBe(false);
+		expect(asTargetTypeB(structA).ok).toBe(false);
+		expect(asTargetTypeB(structB)).toStrictEqual(ok(structB));
 	});
 });
 
@@ -195,64 +189,70 @@ type TargetTuple = [string, number | null | 'foo', number[] | undefined];
 
 describe('tuple', () => {
 	it('returns true if array of desired shape', () => {
-		const isTargetTuple = tuple<TargetTuple>(
-			isString,
-			oneOf(isNumber, isNull, literal('foo')),
-			optional(arrayOf(isNumber)),
+		const asTargetTuple = tuple<TargetTuple>(
+			asString,
+			oneOf(asNumber, asNull, literal('foo')),
+			optional(arrayOf(asNumber)),
 		);
 
-		expect(isTargetTuple(5)).toBe(false);
-		expect(isTargetTuple(false)).toBe(false);
-		expect(isTargetTuple(undefined)).toBe(false);
-		expect(isTargetTuple(null)).toBe(false);
-		expect(isTargetTuple('foo')).toBe(false);
-		expect(isTargetTuple({ a: 5 })).toBe(false);
-		expect(isTargetTuple([3, 4, 5])).toBe(false);
+		expect(asTargetTuple(5).ok).toBe(false);
+		expect(asTargetTuple(false).ok).toBe(false);
+		expect(asTargetTuple(undefined).ok).toBe(false);
+		expect(asTargetTuple(null).ok).toBe(false);
+		expect(asTargetTuple('foo').ok).toBe(false);
+		expect(asTargetTuple({ a: 5 }).ok).toBe(false);
+		expect(asTargetTuple([3, 4, 5]).ok).toBe(false);
 
-		expect(isTargetTuple(['a', 5, [1, 2, 3]])).toBe(true);
-		expect(isTargetTuple(['a', null, undefined])).toBe(true);
-		expect(isTargetTuple(['a', 'foo', undefined])).toBe(true);
+		expect(asTargetTuple(['a', 5, [1, 2, 3]])).toStrictEqual(
+			ok(['a', 5, [1, 2, 3]]),
+		);
+		expect(asTargetTuple(['a', null, undefined])).toStrictEqual(
+			ok(['a', null, undefined]),
+		);
+		expect(asTargetTuple(['a', 'foo', undefined])).toStrictEqual(
+			ok(['a', 'foo', undefined]),
+		);
 
-		expect(isTargetTuple(['a', 'bar', undefined])).toBe(false);
-		expect(isTargetTuple(['a', 'foo', ['a']])).toBe(false);
+		expect(asTargetTuple(['a', 'bar', undefined]).ok).toBe(false);
+		expect(asTargetTuple(['a', 'foo', ['a']]).ok).toBe(false);
 	});
 
 	it('still compiles with tighter matching than needed', () => {
-		const isTargetTupleFull = tuple<TargetTuple>(
-			isString,
-			oneOf(isNumber, isNull, literal('foo')),
-			optional(arrayOf(isNumber)),
+		const asTargetTupleFull = tuple<TargetTuple>(
+			asString,
+			oneOf(asNumber, asNull, literal('foo')),
+			optional(arrayOf(asNumber)),
 		);
 
 		// Since `number` and `null` are subsets of `null | number`,
-		// isNumber and isNull should both work as a replacement.
+		// asNumber and asNull should both work as a replacement.
 		// Same goes with any union type
-		const isTargetTupleA = tuple<TargetTuple>(
-			isString,
-			isNumber,
-			tuple(isNumber, isNumber),
+		const asTargetTupleA = tuple<TargetTuple>(
+			asString,
+			asNumber,
+			tuple(asNumber, asNumber),
 		);
 
-		const isTargetTupleB = tuple<TargetTuple>(
-			isString,
-			isNull,
-			isUndefined,
+		const asTargetTupleB = tuple<TargetTuple>(
+			asString,
+			asNull,
+			asUndefined,
 		);
 
 		const tupleFull = ['a', 'foo', [1, 2, 3]];
 		const tupleA = ['a', 5, [1, 2]];
 		const tupleB = ['a', null, undefined];
 
-		expect(isTargetTupleFull(tupleFull)).toBe(true);
-		expect(isTargetTupleFull(tupleA)).toBe(true);
-		expect(isTargetTupleFull(tupleB)).toBe(true);
+		expect(asTargetTupleFull(tupleFull)).toStrictEqual(ok(tupleFull));
+		expect(asTargetTupleFull(tupleA)).toStrictEqual(ok(tupleA));
+		expect(asTargetTupleFull(tupleB)).toStrictEqual(ok(tupleB));
 
-		expect(isTargetTupleA(tupleFull)).toBe(false);
-		expect(isTargetTupleA(tupleA)).toBe(true);
-		expect(isTargetTupleA(tupleB)).toBe(false);
+		expect(asTargetTupleA(tupleFull).ok).toBe(false);
+		expect(asTargetTupleA(tupleA)).toStrictEqual(ok(tupleA));
+		expect(asTargetTupleA(tupleB).ok).toBe(false);
 
-		expect(isTargetTupleB(tupleFull)).toBe(false);
-		expect(isTargetTupleB(tupleA)).toBe(false);
-		expect(isTargetTupleB(tupleB)).toBe(true);
+		expect(asTargetTupleB(tupleFull).ok).toBe(false);
+		expect(asTargetTupleB(tupleA).ok).toBe(false);
+		expect(asTargetTupleB(tupleB)).toStrictEqual(ok(tupleB));
 	});
 });
