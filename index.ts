@@ -1,3 +1,21 @@
+export type { Ok, Err, Result } from './src/result';
+
+export {
+	ok,
+	err,
+	errMsg,
+	isOk,
+	isErr,
+	unwrap,
+	reduce,
+	mapAndIgnoreErrors,
+	mapUnlessError,
+} from './src/result';
+
+export type { CastError, CastResult } from './src/castResult';
+
+export { castErr, castErrChain } from './src/castResult';
+
 export {
 	isUnknown,
 	isNull,
@@ -7,6 +25,14 @@ export {
 	isBoolean,
 	isObject,
 	isArray,
+	asUnknown,
+	asNull,
+	asUndefined,
+	asString,
+	asNumber,
+	asBoolean,
+	asObject,
+	asArray,
 } from './src/basic';
 
 export {
