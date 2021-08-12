@@ -148,15 +148,14 @@ const customIsInnerType = (data: unknown): CastResult<InnerType> => {
 };
 
 // Same as above, but a bit cleaner
-const customIsInnerType2 = (data: unknown): CastResult<InnerType> => {
-	const typedDataResult = asInnerType(data);
-	if (result.isErr(typedDataResult)) {
-		return typedDataResult;
-	}
-	const output = typedDataResult.value;
-	if (Object.keys(output).length !== 1) {
-		return castErr('{ a: string } without extra keys', data);
-	}
-	return ok(output);
-};
+const customIsInnerType2 = (data: unknown): CastResult<InnerType> =>
+	result
+		.pipe(asInnerType(data))
+		.then((output) => {
+			if (Object.keys(output).length !== 1) {
+				return castErr('{ a: string } without extra keys', data);
+			}
+			return result.ok(output);
+		})
+		.finish();
 ```

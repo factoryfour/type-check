@@ -58,8 +58,34 @@ function then<T, U, E>(
 	return v;
 }
 
+function orElse<T, E, F>(
+	v: Result<T, E>,
+	fn: (current: Err<E>) => Result<T, F>,
+): Result<T, F> {
+	if (isOk(v)) {
+		return v;
+	}
+	return fn(v);
+}
+
 function pickFirst<T>(a: T): T {
 	return a;
+}
+
+function all<T, U, E>(
+	data: T[],
+	fn: (item: T, idx: number) => Result<U, E>,
+): Result<U[], E> {
+	const outputs: U[] = [];
+	for (let idx = 0; idx < data.length; idx += 1) {
+		const item = fn(data[idx], idx);
+		if (isOk(item)) {
+			outputs.push(item.value);
+		} else {
+			return item;
+		}
+	}
+	return ok(outputs);
 }
 
 function collect<T, E>(
@@ -81,4 +107,34 @@ function collect<T, E>(
 	return ok(oks);
 }
 
-export const result = { unwrap, then, collect, ok, err, errMsg, isOk, isErr };
+type ResultPipe<T, E> = {
+	finish: () => Result<T, E>;
+	unwrap: () => T;
+	then: <U>(fn: (current: T) => Result<U, E>) => ResultPipe<U, E>;
+	orElse: <F>(fn: (current: Err<E>) => Result<T, F>) => ResultPipe<T, F>;
+};
+
+function pipe<T, E>(data: Result<T, E>): ResultPipe<T, E> {
+	return {
+		finish: (): Result<T, E> => data,
+		unwrap: (): T => unwrap(data),
+		then: <U>(fn: (current: T) => Result<U, E>): ResultPipe<U, E> =>
+			pipe(then(data, fn)),
+		orElse: <F>(fn: (current: Err<E>) => Result<T, F>): ResultPipe<T, F> =>
+			pipe(orElse(data, fn)),
+	};
+}
+
+export const result = {
+	pipe,
+	unwrap,
+	then,
+	orElse,
+	all,
+	collect,
+	ok,
+	err,
+	errMsg,
+	isOk,
+	isErr,
+};

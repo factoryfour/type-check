@@ -42,40 +42,43 @@ export function nullable<T>(
 	return oneOf(asNull, asChildType);
 }
 
+function handleChild<T>(
+	key: string | number,
+	item: unknown,
+	asChildType: (value: unknown) => CastResult<T>,
+): CastResult<T> {
+	return result
+		.pipe(asChildType(item))
+		.orElse((err) => castErrChain(err, key))
+		.finish();
+}
+
 export function arrayOf<T>(
 	asChildType: (value: unknown) => CastResult<T>,
 ): (value: unknown) => CastResult<T[]> {
-	return (value): CastResult<T[]> => {
-		const valueArrayResult = asArray(value);
-		if (result.isErr(valueArrayResult)) {
-			return valueArrayResult;
-		}
-		const arrValue = valueArrayResult.value;
-		for (let idx = 0; idx < arrValue.length; idx += 1) {
-			const child = asChildType(arrValue[idx]);
-			if (result.isErr(child)) {
-				return castErrChain(child, idx);
-			}
-		}
-		return result.ok(value as T[]);
-	};
+	return (value): CastResult<T[]> =>
+		result
+			.pipe(asArray(value))
+			.then((arrValue) =>
+				result.all(arrValue, (item, idx) =>
+					handleChild(idx, item, asChildType),
+				),
+			)
+			.then(() => result.ok(value as T[]))
+			.finish();
 }
 
 export function objectOf<T>(
 	asChildType: (value: unknown) => CastResult<T>,
 ): (value: unknown) => CastResult<{ [key: string]: T }> {
-	return (value): CastResult<{ [key: string]: T }> => {
-		const valueObjectResult = asObject(value);
-		if (result.isErr(valueObjectResult)) {
-			return valueObjectResult;
-		}
-		const objValue = valueObjectResult.value;
-		for (const key of Object.keys(objValue)) {
-			const child = asChildType(objValue[key]);
-			if (result.isErr(child)) {
-				return castErrChain(child, key);
-			}
-		}
-		return result.ok(objValue as { [key: string]: T });
-	};
+	return (value): CastResult<{ [key: string]: T }> =>
+		result
+			.pipe(asObject(value))
+			.then((objValue) =>
+				result.all(Object.keys(objValue), (key) =>
+					handleChild(key, objValue[key], asChildType),
+				),
+			)
+			.then(() => result.ok(value as { [key: string]: T }))
+			.finish();
 }
