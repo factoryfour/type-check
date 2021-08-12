@@ -1,4 +1,12 @@
 import {
+	asUnknown,
+	asNull,
+	asUndefined,
+	asString,
+	asNumber,
+	asBoolean,
+	asObject,
+	asArray,
 	isUnknown,
 	isNull,
 	isUndefined,
@@ -7,7 +15,104 @@ import {
 	isBoolean,
 	isObject,
 	isArray,
+	result,
 } from '../index';
+
+describe('asUnknown', () => {
+	it('always returns the put in value', () => {
+		expect(asUnknown(5)).toStrictEqual(result.ok(5));
+		expect(asUnknown(false)).toStrictEqual(result.ok(false));
+		expect(asUnknown(undefined)).toStrictEqual(result.ok(undefined));
+		expect(asUnknown(null)).toStrictEqual(result.ok(null));
+		expect(asUnknown('foo')).toStrictEqual(result.ok('foo'));
+		expect(asUnknown({ a: 5 })).toStrictEqual(result.ok({ a: 5 }));
+		expect(asUnknown([3, 4, 5])).toStrictEqual(result.ok([3, 4, 5]));
+	});
+});
+
+describe('asNull', () => {
+	it('returns put in value only if null', () => {
+		expect(asNull(5).ok).toBe(false);
+		expect(asNull(false).ok).toBe(false);
+		expect(asNull(undefined).ok).toBe(false);
+		expect(asNull(null)).toStrictEqual(result.ok(null));
+		expect(asNull('foo').ok).toBe(false);
+		expect(asNull({ a: 5 }).ok).toBe(false);
+		expect(asNull([3, 4, 5]).ok).toBe(false);
+	});
+});
+
+describe('asUndefined', () => {
+	it('returns put in value only if undefined', () => {
+		expect(asUndefined(5).ok).toBe(false);
+		expect(asUndefined(false).ok).toBe(false);
+		expect(asUndefined(undefined)).toStrictEqual(result.ok(undefined));
+		expect(asUndefined(null).ok).toBe(false);
+		expect(asUndefined('foo').ok).toBe(false);
+		expect(asUndefined({ a: 5 }).ok).toBe(false);
+		expect(asUndefined([3, 4, 5]).ok).toBe(false);
+	});
+});
+
+describe('asString', () => {
+	it('returns put in value only if it is a string', () => {
+		expect(asString(5).ok).toBe(false);
+		expect(asString(false).ok).toBe(false);
+		expect(asString(undefined).ok).toBe(false);
+		expect(asString(null).ok).toBe(false);
+		expect(asString('foo')).toStrictEqual(result.ok('foo'));
+		expect(asString({ a: 5 }).ok).toBe(false);
+		expect(asString([3, 4, 5]).ok).toBe(false);
+	});
+});
+
+describe('asNumber', () => {
+	it('returns put in value only if it is a number', () => {
+		expect(asNumber(5)).toStrictEqual(result.ok(5));
+		expect(asNumber(false).ok).toBe(false);
+		expect(asNumber(undefined).ok).toBe(false);
+		expect(asNumber(null).ok).toBe(false);
+		expect(asNumber('foo').ok).toBe(false);
+		expect(asNumber({ a: 5 }).ok).toBe(false);
+		expect(asNumber([3, 4, 5]).ok).toBe(false);
+	});
+});
+
+describe('asBoolean', () => {
+	it('returns put in value only if it is a boolean', () => {
+		expect(asBoolean(5).ok).toBe(false);
+		expect(asBoolean(false)).toStrictEqual(result.ok(false));
+		expect(asBoolean(undefined).ok).toBe(false);
+		expect(asBoolean(null).ok).toBe(false);
+		expect(asBoolean('foo').ok).toBe(false);
+		expect(asBoolean({ a: 5 }).ok).toBe(false);
+		expect(asBoolean([3, 4, 5]).ok).toBe(false);
+	});
+});
+
+describe('asObject', () => {
+	it('returns put in value only if it is an object', () => {
+		expect(asObject(5).ok).toBe(false);
+		expect(asObject(false).ok).toBe(false);
+		expect(asObject(undefined).ok).toBe(false);
+		expect(asObject(null).ok).toBe(false);
+		expect(asObject('foo').ok).toBe(false);
+		expect(asObject({ a: 5 })).toStrictEqual(result.ok({ a: 5 }));
+		expect(asObject([3, 4, 5]).ok).toBe(false);
+	});
+});
+
+describe('asArray', () => {
+	it('returns put in value only if it is an array', () => {
+		expect(asArray(5).ok).toBe(false);
+		expect(asArray(false).ok).toBe(false);
+		expect(asArray(undefined).ok).toBe(false);
+		expect(asArray(null).ok).toBe(false);
+		expect(asArray('foo').ok).toBe(false);
+		expect(asArray({ a: 5 }).ok).toBe(false);
+		expect(asArray([3, 4, 5])).toStrictEqual(result.ok([3, 4, 5]));
+	});
+});
 
 describe('isUnknown', () => {
 	it('always returns true', () => {

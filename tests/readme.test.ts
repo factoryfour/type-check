@@ -1,13 +1,16 @@
 /// Ensure the readme example still compiles
 import {
 	arrayOf,
-	isBoolean,
-	isNull,
-	isNumber,
-	isObject,
-	isString,
-	isUndefined,
-	isUnknown,
+	asBoolean,
+	asNull,
+	asNumber,
+	asObject,
+	asString,
+	asUndefined,
+	asUnknown,
+	castErr,
+	castErrChain,
+	CastResult,
 	literal,
 	nullable,
 	objectOf,
@@ -15,6 +18,7 @@ import {
 	optional,
 	structure,
 	tuple,
+	result,
 } from '../index';
 
 type ApiResponse = {
@@ -35,44 +39,44 @@ type ApiResponse = {
 	}[];
 };
 
-const isApiResponse = structure<ApiResponse>({
+const asApiResponse = structure<ApiResponse>({
 	header: structure({
-		success: isBoolean,
-		tags: arrayOf(isString),
-		code: tuple(isNumber, isString),
+		success: asBoolean,
+		tags: arrayOf(asString),
+		code: tuple(asNumber, asString),
 	}),
 	data: arrayOf(
 		structure({
 			direction: literal('left', 'right'),
-			angle: oneOf(isNumber, literal('unknown')),
-			arguments: objectOf(isString),
-			comment: optional(isString),
+			angle: oneOf(asNumber, literal('unknown')),
+			arguments: objectOf(asString),
+			comment: optional(asString),
 			user: nullable(
 				structure({
-					name: isString,
+					name: asString,
 				}),
 			),
-			extra: isUnknown,
+			extra: asUnknown,
 		}),
 	),
 });
 
-const stillIsApiResponse = structure<ApiResponse>({
+const stillAsApiResponse = structure<ApiResponse>({
 	header: structure({
 		success: literal(false),
-		tags: tuple(isString, isString),
-		code: tuple(literal(404), isString),
+		tags: tuple(asString, asString),
+		code: tuple(literal(404), asString),
 	}),
 	data: arrayOf(
 		structure({
 			direction: literal('left'),
-			angle: isNumber,
+			angle: asNumber,
 			arguments: structure({
-				someKey: isString,
+				someKey: asString,
 			}),
-			comment: isUndefined,
-			user: isNull,
-			extra: isUnknown,
+			comment: asUndefined,
+			user: asNull,
+			extra: asUnknown,
 		}),
 	),
 });
@@ -85,41 +89,53 @@ type OuterType = {
 	b: InnerType;
 };
 
-const isInnerType = structure<InnerType>({
-	a: isString,
+const asInnerType = structure<InnerType>({
+	a: asString,
 });
 
 // Also ensures nothing else is in there
-const customIsInnerType = (data: unknown): data is InnerType => {
-	if (!isObject(data)) {
-		return false;
+const customIsInnerType = (data: unknown): CastResult<InnerType> => {
+	const dataObjResult = asObject(data);
+	if (result.isErr(dataObjResult)) {
+		return dataObjResult;
 	}
-	if (Object.keys(data).length !== 1) {
-		return false;
+	if (Object.keys(dataObjResult.value).length !== 1) {
+		return castErr('{ a: string } without extra keys', data);
 	}
-	return isString(data.a);
+	const aFieldResult = asString(dataObjResult.value.a);
+	if (result.isErr(aFieldResult)) {
+		return castErrChain(aFieldResult, 'a');
+	}
+	return result.ok(data as InnerType);
 };
 
 // Same as above, but a bit cleaner
-const customIsInnerType2 = (data: unknown): data is InnerType => {
-	return isInnerType(data) && Object.keys(data).length === 1;
-};
+const customIsInnerType2 = (data: unknown): CastResult<InnerType> =>
+	result
+		.pipe(asInnerType(data))
+		.then((output) => {
+			if (Object.keys(output).length !== 1) {
+				return castErr('{ a: string } without extra keys', data);
+			}
+			return result.ok(output);
+		})
+		.finish();
 
-const isOuterType0 = structure<OuterType>({
+const asOuterType0 = structure<OuterType>({
 	b: structure({
-		a: isString,
+		a: asString,
 	}),
 });
 
-const isOuterType1 = structure<OuterType>({
-	b: isInnerType,
+const asOuterType1 = structure<OuterType>({
+	b: asInnerType,
 });
 
-const isOuterType2 = structure<OuterType>({
+const asOuterType2 = structure<OuterType>({
 	b: customIsInnerType,
 });
 
-const isOuterType3 = structure<OuterType>({
+const asOuterType3 = structure<OuterType>({
 	b: customIsInnerType2,
 });
 
@@ -201,27 +217,49 @@ describe('readme', () => {
 			],
 		};
 
-		expect(isApiResponse(goodValue)).toBe(true);
-		expect(isApiResponse(unnecessarilyConstrainedValue)).toBe(true);
-		expect(isApiResponse(badValue)).toBe(false);
+		expect(asApiResponse(goodValue)).toStrictEqual(result.ok(goodValue));
+		expect(asApiResponse(unnecessarilyConstrainedValue)).toStrictEqual(
+			result.ok(unnecessarilyConstrainedValue),
+		);
+		expect(asApiResponse(badValue).ok).toBe(false);
 
-		expect(stillIsApiResponse(goodValue)).toBe(false);
-		expect(stillIsApiResponse(unnecessarilyConstrainedValue)).toBe(true);
-		expect(stillIsApiResponse(badValue)).toBe(false);
+		expect(stillAsApiResponse(goodValue).ok).toBe(false);
+		expect(stillAsApiResponse(unnecessarilyConstrainedValue)).toStrictEqual(
+			result.ok(unnecessarilyConstrainedValue),
+		);
+		expect(stillAsApiResponse(badValue).ok).toBe(false);
 
 		function iWantAnApiResponse(value: ApiResponse) {
 			// eslint-disable-next-line no-unused-expressions
 			value;
 		}
 
-		if (isApiResponse(goodValue)) {
+		const goodValueResult = asApiResponse(goodValue);
+		if (result.isOk(goodValueResult)) {
 			// This will be called
-			iWantAnApiResponse(goodValue);
+			iWantAnApiResponse(goodValueResult.value);
 		}
-		if (isApiResponse(badValue)) {
+		const badValueResult = asApiResponse(badValue);
+		if (result.isOk(badValueResult)) {
 			// This will not be reached
-			iWantAnApiResponse(badValue);
+			iWantAnApiResponse(badValueResult.value);
 		}
+
+		const valueWithBadHeader = {
+			header: {
+				success: true,
+				tags: ['a', 'b', 3],
+				code: [200, 'success'],
+			},
+			data: [],
+		};
+		expect(asApiResponse(valueWithBadHeader)).toStrictEqual({
+			ok: false,
+			errorMessage: "Value at 'header.tags.2' is not of type 'string'",
+			path: ['header', 'tags', 2],
+			expected: 'string',
+			received: 3,
+		});
 	});
 
 	it('evaluates compound checkers correctly for one example value', () => {
@@ -242,20 +280,32 @@ describe('readme', () => {
 			},
 		};
 
-		expect(isOuterType0(looselyGoodValue)).toBe(true);
-		expect(isOuterType0(strictlyGoodValue)).toBe(true);
-		expect(isOuterType0(badValue)).toBe(false);
+		expect(asOuterType0(looselyGoodValue)).toStrictEqual(
+			result.ok(looselyGoodValue),
+		);
+		expect(asOuterType0(strictlyGoodValue)).toStrictEqual(
+			result.ok(strictlyGoodValue),
+		);
+		expect(asOuterType0(badValue).ok).toBe(false);
 
-		expect(isOuterType1(looselyGoodValue)).toBe(true);
-		expect(isOuterType1(strictlyGoodValue)).toBe(true);
-		expect(isOuterType1(badValue)).toBe(false);
+		expect(asOuterType1(looselyGoodValue)).toStrictEqual(
+			result.ok(looselyGoodValue),
+		);
+		expect(asOuterType1(strictlyGoodValue)).toStrictEqual(
+			result.ok(strictlyGoodValue),
+		);
+		expect(asOuterType1(badValue).ok).toBe(false);
 
-		expect(isOuterType2(looselyGoodValue)).toBe(false);
-		expect(isOuterType2(strictlyGoodValue)).toBe(true);
-		expect(isOuterType2(badValue)).toBe(false);
+		expect(asOuterType2(looselyGoodValue).ok).toBe(false);
+		expect(asOuterType2(strictlyGoodValue)).toStrictEqual(
+			result.ok(strictlyGoodValue),
+		);
+		expect(asOuterType2(badValue).ok).toBe(false);
 
-		expect(isOuterType3(looselyGoodValue)).toBe(false);
-		expect(isOuterType3(strictlyGoodValue)).toBe(true);
-		expect(isOuterType3(badValue)).toBe(false);
+		expect(asOuterType3(looselyGoodValue).ok).toBe(false);
+		expect(asOuterType3(strictlyGoodValue)).toStrictEqual(
+			result.ok(strictlyGoodValue),
+		);
+		expect(asOuterType3(badValue).ok).toBe(false);
 	});
 });
