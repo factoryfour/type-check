@@ -1,6 +1,6 @@
 import { asArray, asObject } from './basic';
 import { castErr, castErrChain, CastResult } from './castResult';
-import { isErr, ok } from './result';
+import { result } from './result';
 
 export function structure<T extends { [key: string]: unknown }>(
 	asChildTypes: {
@@ -9,17 +9,17 @@ export function structure<T extends { [key: string]: unknown }>(
 ): (value: unknown) => CastResult<T> {
 	return (value): CastResult<T> => {
 		const valueObjectResult = asObject(value);
-		if (isErr(valueObjectResult)) {
+		if (result.isErr(valueObjectResult)) {
 			return valueObjectResult;
 		}
 		const objValue = valueObjectResult.value;
 		for (const key of Object.keys(asChildTypes)) {
 			const child = asChildTypes[key](objValue[key]);
-			if (isErr(child)) {
+			if (result.isErr(child)) {
 				return castErrChain(child, key);
 			}
 		}
-		return ok(objValue as T);
+		return result.ok(objValue as T);
 	};
 }
 
@@ -30,7 +30,7 @@ export function tuple<T extends unknown[]>(
 ): (value: unknown) => CastResult<T> {
 	return (value): CastResult<T> => {
 		const valueArrayResult = asArray(value);
-		if (isErr(valueArrayResult)) {
+		if (result.isErr(valueArrayResult)) {
 			return valueArrayResult;
 		}
 		const arrValue = valueArrayResult.value;
@@ -39,10 +39,10 @@ export function tuple<T extends unknown[]>(
 		}
 		for (let idx = 0; idx < asChildTypes.length; idx += 1) {
 			const child = asChildTypes[idx](arrValue[idx]);
-			if (isErr(child)) {
+			if (result.isErr(child)) {
 				return castErrChain(child, idx);
 			}
 		}
-		return ok(arrValue as T);
+		return result.ok(arrValue as T);
 	};
 }

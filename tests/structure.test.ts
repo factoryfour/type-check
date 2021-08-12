@@ -11,7 +11,7 @@ import {
 	asNull,
 	asUndefined,
 	tuple,
-	ok,
+	result,
 } from '../index';
 
 // Specifying target type is optional for structure, but it massively
@@ -52,7 +52,7 @@ describe('structure', () => {
 			},
 			type: 'bar',
 		};
-		expect(asTargetType(goodStruct1)).toStrictEqual(ok(goodStruct1));
+		expect(asTargetType(goodStruct1)).toStrictEqual(result.ok(goodStruct1));
 
 		const goodStruct2 = {
 			foo: 'a',
@@ -62,7 +62,7 @@ describe('structure', () => {
 			},
 			type: 'bar',
 		};
-		expect(asTargetType(goodStruct2)).toStrictEqual(ok(goodStruct2));
+		expect(asTargetType(goodStruct2)).toStrictEqual(result.ok(goodStruct2));
 
 		const goodStruct3 = {
 			foo: 'a',
@@ -72,7 +72,7 @@ describe('structure', () => {
 			},
 			type: 'bar',
 		};
-		expect(asTargetType(goodStruct3)).toStrictEqual(ok(goodStruct3));
+		expect(asTargetType(goodStruct3)).toStrictEqual(result.ok(goodStruct3));
 
 		const goodStruct4 = {
 			foo: 'a',
@@ -82,7 +82,7 @@ describe('structure', () => {
 			},
 			type: 'bar',
 		};
-		expect(asTargetType(goodStruct4)).toStrictEqual(ok(goodStruct4));
+		expect(asTargetType(goodStruct4)).toStrictEqual(result.ok(goodStruct4));
 
 		const goodStruct5 = {
 			foo: 'b',
@@ -92,7 +92,7 @@ describe('structure', () => {
 			},
 			type: 'foo',
 		};
-		expect(asTargetType(goodStruct5)).toStrictEqual(ok(goodStruct5));
+		expect(asTargetType(goodStruct5)).toStrictEqual(result.ok(goodStruct5));
 
 		const goodStruct6 = {
 			foo: 'b',
@@ -100,7 +100,7 @@ describe('structure', () => {
 			baz: {},
 			type: 'foo',
 		};
-		expect(asTargetType(goodStruct6)).toStrictEqual(ok(goodStruct6));
+		expect(asTargetType(goodStruct6)).toStrictEqual(result.ok(goodStruct6));
 
 		const badStruct1 = {
 			foo: 5,
@@ -169,17 +169,19 @@ describe('structure', () => {
 			type: 'bar',
 		};
 
-		expect(asTargetTypeFull(structFull)).toStrictEqual(ok(structFull));
-		expect(asTargetTypeFull(structA)).toStrictEqual(ok(structA));
-		expect(asTargetTypeFull(structB)).toStrictEqual(ok(structB));
+		expect(asTargetTypeFull(structFull)).toStrictEqual(
+			result.ok(structFull),
+		);
+		expect(asTargetTypeFull(structA)).toStrictEqual(result.ok(structA));
+		expect(asTargetTypeFull(structB)).toStrictEqual(result.ok(structB));
 
 		expect(asTargetTypeA(structFull).ok).toBe(false);
-		expect(asTargetTypeA(structA)).toStrictEqual(ok(structA));
+		expect(asTargetTypeA(structA)).toStrictEqual(result.ok(structA));
 		expect(asTargetTypeA(structB).ok).toBe(false);
 
 		expect(asTargetTypeB(structFull).ok).toBe(false);
 		expect(asTargetTypeB(structA).ok).toBe(false);
-		expect(asTargetTypeB(structB)).toStrictEqual(ok(structB));
+		expect(asTargetTypeB(structB)).toStrictEqual(result.ok(structB));
 	});
 });
 
@@ -204,13 +206,13 @@ describe('tuple', () => {
 		expect(asTargetTuple([3, 4, 5]).ok).toBe(false);
 
 		expect(asTargetTuple(['a', 5, [1, 2, 3]])).toStrictEqual(
-			ok(['a', 5, [1, 2, 3]]),
+			result.ok(['a', 5, [1, 2, 3]]),
 		);
 		expect(asTargetTuple(['a', null, undefined])).toStrictEqual(
-			ok(['a', null, undefined]),
+			result.ok(['a', null, undefined]),
 		);
 		expect(asTargetTuple(['a', 'foo', undefined])).toStrictEqual(
-			ok(['a', 'foo', undefined]),
+			result.ok(['a', 'foo', undefined]),
 		);
 
 		expect(asTargetTuple(['a', 'bar', undefined]).ok).toBe(false);
@@ -243,16 +245,18 @@ describe('tuple', () => {
 		const tupleA = ['a', 5, [1, 2]];
 		const tupleB = ['a', null, undefined];
 
-		expect(asTargetTupleFull(tupleFull)).toStrictEqual(ok(tupleFull));
-		expect(asTargetTupleFull(tupleA)).toStrictEqual(ok(tupleA));
-		expect(asTargetTupleFull(tupleB)).toStrictEqual(ok(tupleB));
+		expect(asTargetTupleFull(tupleFull)).toStrictEqual(
+			result.ok(tupleFull),
+		);
+		expect(asTargetTupleFull(tupleA)).toStrictEqual(result.ok(tupleA));
+		expect(asTargetTupleFull(tupleB)).toStrictEqual(result.ok(tupleB));
 
 		expect(asTargetTupleA(tupleFull).ok).toBe(false);
-		expect(asTargetTupleA(tupleA)).toStrictEqual(ok(tupleA));
+		expect(asTargetTupleA(tupleA)).toStrictEqual(result.ok(tupleA));
 		expect(asTargetTupleA(tupleB).ok).toBe(false);
 
 		expect(asTargetTupleB(tupleFull).ok).toBe(false);
 		expect(asTargetTupleB(tupleA).ok).toBe(false);
-		expect(asTargetTupleB(tupleB)).toStrictEqual(ok(tupleB));
+		expect(asTargetTupleB(tupleB)).toStrictEqual(result.ok(tupleB));
 	});
 });

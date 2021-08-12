@@ -14,14 +14,14 @@ type BasicError = {};
 // eslint-disable-next-line @typescript-eslint/ban-types
 export type Result<T, E = BasicError> = Ok<T> | Err<E>;
 
-export function ok<T>(value: T): Ok<T> {
+function ok<T>(value: T): Ok<T> {
 	return {
 		ok: true,
 		value,
 	};
 }
 
-export function err<E>(errorMessage: string, body: E): Err<E> {
+function err<E>(errorMessage: string, body: E): Err<E> {
 	return {
 		...body,
 		ok: false,
@@ -29,77 +29,56 @@ export function err<E>(errorMessage: string, body: E): Err<E> {
 	};
 }
 
-export function errMsg(errorMessage: string): Err<BasicError> {
+function errMsg(errorMessage: string): Err<BasicError> {
 	return err(errorMessage, {});
 }
 
-export function isOk<T, E>(v: Result<T, E>): v is Ok<T> {
+function isOk<T, E>(v: Result<T, E>): v is Ok<T> {
 	return v.ok;
 }
 
-export function isErr<T, E>(v: Result<T, E>): v is Err<E> {
+function isErr<T, E>(v: Result<T, E>): v is Err<E> {
 	return !v.ok;
 }
 
-export function unwrap<T, E>(v: Result<T, E>): T {
+function unwrap<T, E>(v: Result<T, E>): T {
 	if (isOk(v)) {
 		return v.value;
 	}
 	throw new Error(`Unexpected error: ${v.errorMessage}`);
 }
 
+function then<T, U, E>(
+	v: Result<T, E>,
+	fn: (current: T) => Result<U, E>,
+): Result<U, E> {
+	if (isOk(v)) {
+		return fn(v.value);
+	}
+	return v;
+}
+
 function pickFirst<T>(a: T): T {
 	return a;
 }
 
-export function reduce<T, E, U = T>(
+function collect<T, E>(
 	data: Result<T, E>[],
-	reduceOk: (accum: U, val: T) => U,
 	reduceErr: (a: Err<E>, b: Err<E>) => Err<E> = pickFirst,
-	initialValue: U,
-): Result<U, E> {
-	if (data.some(isErr)) {
-		return data.filter(isErr).reduce(reduceErr);
+): Result<T[], E> {
+	const oks: T[] = [];
+	const errors: Err<E>[] = [];
+	data.forEach((item) => {
+		if (isOk(item)) {
+			oks.push(item.value);
+		} else {
+			errors.push(item);
+		}
+	});
+	if (errors.length > 0) {
+		return errors.reduce(reduceErr);
 	}
-	return ok(
-		data
-			.filter(isOk)
-			.map((v) => v.value)
-			.reduce(reduceOk, initialValue),
-	);
+	return ok(oks);
 }
 
-export function mapAndIgnoreErrors<InputType, OutputType, E>(
-	array: InputType[],
-	mapper: (input: InputType, index: number) => Result<OutputType, E>,
-	onError?: (error: Err<E>) => void,
-): OutputType[] {
-	const output: OutputType[] = [];
-	for (let index = 0; index < array.length; index += 1) {
-		const element = array[index];
-		const result = mapper(element, index);
-		if (isOk(result)) {
-			output.push(result.value);
-		} else {
-			onError?.(result);
-		}
-	}
-	return output;
-}
-
-export function mapUnlessError<InputType, OutputType, E>(
-	array: InputType[],
-	mapper: (input: InputType, index: number) => Result<OutputType, E>,
-): Result<OutputType[], E> {
-	const output: OutputType[] = [];
-	for (let index = 0; index < array.length; index += 1) {
-		const element = array[index];
-		const result = mapper(element, index);
-		if (isOk(result)) {
-			output.push(result.value);
-		} else {
-			return result;
-		}
-	}
-	return ok(output);
-}
+export const result = { unwrap, then, collect, ok, err, errMsg, isOk, isErr };

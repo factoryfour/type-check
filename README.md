@@ -62,7 +62,7 @@ function iWantAnApiResponse(value: ApiResponse) {
 iWantAnApiResponse(unknownData) // compiler error
 
 const apiResponseResult = asApiResponse(unknownData);
-if (isOk(apiResponseResult)) {
+if (result.isOk(apiResponseResult)) {
 	iWantAnApiResponse(apiResponseResult.value);
 }
 ```
@@ -134,23 +134,23 @@ const asInnerType = structure<InnerType>({
 // Also ensures nothing else is in there
 const customIsInnerType = (data: unknown): CastResult<InnerType> => {
 	const dataObjResult = asObject(data);
-	if (isErr(dataObjResult)) {
+	if (result.isErr(dataObjResult)) {
 		return dataObjResult;
 	}
 	if (Object.keys(dataObjResult.value).length !== 1) {
 		return castErr('{ a: string } without extra keys', data);
 	}
 	const aFieldResult = asString(dataObjResult.value.a);
-	if (isErr(aFieldResult)) {
+	if (result.isErr(aFieldResult)) {
 		return castErrChain(aFieldResult, 'a');
 	}
-	return ok(data as InnerType);
+	return result.ok(data as InnerType);
 };
 
 // Same as above, but a bit cleaner
 const customIsInnerType2 = (data: unknown): CastResult<InnerType> => {
 	const typedDataResult = asInnerType(data);
-	if (isErr(typedDataResult)) {
+	if (result.isErr(typedDataResult)) {
 		return typedDataResult;
 	}
 	const output = typedDataResult.value;

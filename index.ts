@@ -1,16 +1,6 @@
 export type { Ok, Err, Result } from './src/result';
 
-export {
-	ok,
-	err,
-	errMsg,
-	isOk,
-	isErr,
-	unwrap,
-	reduce,
-	mapAndIgnoreErrors,
-	mapUnlessError,
-} from './src/result';
+export { result } from './src/result';
 
 export type { CastError, CastResult } from './src/castResult';
 

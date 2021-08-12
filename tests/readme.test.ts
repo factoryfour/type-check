@@ -11,16 +11,14 @@ import {
 	castErr,
 	castErrChain,
 	CastResult,
-	isErr,
-	isOk,
 	literal,
 	nullable,
 	objectOf,
-	ok,
 	oneOf,
 	optional,
 	structure,
 	tuple,
+	result,
 } from '../index';
 
 type ApiResponse = {
@@ -98,30 +96,30 @@ const asInnerType = structure<InnerType>({
 // Also ensures nothing else is in there
 const customIsInnerType = (data: unknown): CastResult<InnerType> => {
 	const dataObjResult = asObject(data);
-	if (isErr(dataObjResult)) {
+	if (result.isErr(dataObjResult)) {
 		return dataObjResult;
 	}
 	if (Object.keys(dataObjResult.value).length !== 1) {
 		return castErr('{ a: string } without extra keys', data);
 	}
 	const aFieldResult = asString(dataObjResult.value.a);
-	if (isErr(aFieldResult)) {
+	if (result.isErr(aFieldResult)) {
 		return castErrChain(aFieldResult, 'a');
 	}
-	return ok(data as InnerType);
+	return result.ok(data as InnerType);
 };
 
 // Same as above, but a bit cleaner
 const customIsInnerType2 = (data: unknown): CastResult<InnerType> => {
 	const typedDataResult = asInnerType(data);
-	if (isErr(typedDataResult)) {
+	if (result.isErr(typedDataResult)) {
 		return typedDataResult;
 	}
 	const output = typedDataResult.value;
 	if (Object.keys(output).length !== 1) {
 		return castErr('{ a: string } without extra keys', data);
 	}
-	return ok(output);
+	return result.ok(output);
 };
 
 const asOuterType0 = structure<OuterType>({
@@ -220,15 +218,15 @@ describe('readme', () => {
 			],
 		};
 
-		expect(asApiResponse(goodValue)).toStrictEqual(ok(goodValue));
+		expect(asApiResponse(goodValue)).toStrictEqual(result.ok(goodValue));
 		expect(asApiResponse(unnecessarilyConstrainedValue)).toStrictEqual(
-			ok(unnecessarilyConstrainedValue),
+			result.ok(unnecessarilyConstrainedValue),
 		);
 		expect(asApiResponse(badValue).ok).toBe(false);
 
 		expect(stillAsApiResponse(goodValue).ok).toBe(false);
 		expect(stillAsApiResponse(unnecessarilyConstrainedValue)).toStrictEqual(
-			ok(unnecessarilyConstrainedValue),
+			result.ok(unnecessarilyConstrainedValue),
 		);
 		expect(stillAsApiResponse(badValue).ok).toBe(false);
 
@@ -238,12 +236,12 @@ describe('readme', () => {
 		}
 
 		const goodValueResult = asApiResponse(goodValue);
-		if (isOk(goodValueResult)) {
+		if (result.isOk(goodValueResult)) {
 			// This will be called
 			iWantAnApiResponse(goodValueResult.value);
 		}
 		const badValueResult = asApiResponse(badValue);
-		if (isOk(badValueResult)) {
+		if (result.isOk(badValueResult)) {
 			// This will not be reached
 			iWantAnApiResponse(badValueResult.value);
 		}
@@ -284,30 +282,30 @@ describe('readme', () => {
 		};
 
 		expect(asOuterType0(looselyGoodValue)).toStrictEqual(
-			ok(looselyGoodValue),
+			result.ok(looselyGoodValue),
 		);
 		expect(asOuterType0(strictlyGoodValue)).toStrictEqual(
-			ok(strictlyGoodValue),
+			result.ok(strictlyGoodValue),
 		);
 		expect(asOuterType0(badValue).ok).toBe(false);
 
 		expect(asOuterType1(looselyGoodValue)).toStrictEqual(
-			ok(looselyGoodValue),
+			result.ok(looselyGoodValue),
 		);
 		expect(asOuterType1(strictlyGoodValue)).toStrictEqual(
-			ok(strictlyGoodValue),
+			result.ok(strictlyGoodValue),
 		);
 		expect(asOuterType1(badValue).ok).toBe(false);
 
 		expect(asOuterType2(looselyGoodValue).ok).toBe(false);
 		expect(asOuterType2(strictlyGoodValue)).toStrictEqual(
-			ok(strictlyGoodValue),
+			result.ok(strictlyGoodValue),
 		);
 		expect(asOuterType2(badValue).ok).toBe(false);
 
 		expect(asOuterType3(looselyGoodValue).ok).toBe(false);
 		expect(asOuterType3(strictlyGoodValue)).toStrictEqual(
-			ok(strictlyGoodValue),
+			result.ok(strictlyGoodValue),
 		);
 		expect(asOuterType3(badValue).ok).toBe(false);
 	});
