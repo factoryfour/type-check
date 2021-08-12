@@ -48,6 +48,13 @@ function unwrap<T, E>(v: Result<T, E>): T {
 	throw new Error(`Unexpected error: ${v.errorMessage}`);
 }
 
+function unwrapOr<T, E>(v: Result<T, E>, d: T): T {
+	if (isOk(v)) {
+		return v.value;
+	}
+	return d;
+}
+
 function then<T, U, E>(
 	v: Result<T, E>,
 	fn: (current: T) => Result<U, E>,
@@ -110,6 +117,7 @@ function collect<T, E>(
 type ResultPipe<T, E> = {
 	finish: () => Result<T, E>;
 	unwrap: () => T;
+	unwrapOr: (alt: T) => T;
 	then: <U>(fn: (current: T) => Result<U, E>) => ResultPipe<U, E>;
 	orElse: <F>(fn: (current: Err<E>) => Result<T, F>) => ResultPipe<T, F>;
 };
@@ -118,6 +126,7 @@ function pipe<T, E>(data: Result<T, E>): ResultPipe<T, E> {
 	return {
 		finish: (): Result<T, E> => data,
 		unwrap: (): T => unwrap(data),
+		unwrapOr: (alt: T): T => unwrapOr(data, alt),
 		then: <U>(fn: (current: T) => Result<U, E>): ResultPipe<U, E> =>
 			pipe(then(data, fn)),
 		orElse: <F>(fn: (current: Err<E>) => Result<T, F>): ResultPipe<T, F> =>
@@ -128,6 +137,7 @@ function pipe<T, E>(data: Result<T, E>): ResultPipe<T, E> {
 export const result = {
 	pipe,
 	unwrap,
+	unwrapOr,
 	then,
 	orElse,
 	all,
