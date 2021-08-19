@@ -45,7 +45,7 @@ function unwrap<T, E>(v: Result<T, E>): T {
 	if (isOk(v)) {
 		return v.value;
 	}
-	throw new Error(`Unexpected error: ${v.errorMessage}`);
+	throw new Error(v.errorMessage);
 }
 
 function unwrapOr<T, E>(v: Result<T, E>, d: T): T {
