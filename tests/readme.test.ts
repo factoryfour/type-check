@@ -20,6 +20,7 @@ import {
 	tuple,
 	result,
 	castOk,
+	isFromAs,
 } from '../index';
 
 type ApiResponse = {
@@ -62,6 +63,8 @@ const asApiResponse = structure<ApiResponse>({
 	),
 });
 
+const isApiResponse = isFromAs(asApiResponse);
+
 const stillAsApiResponse = structure<ApiResponse>({
 	header: structure({
 		success: literal(false),
@@ -95,7 +98,7 @@ const asInnerType = structure<InnerType>({
 });
 
 // Also ensures nothing else is in there
-const customIsInnerType: Cast<InnerType> = (data) => {
+const customAsInnerType: Cast<InnerType> = (data) => {
 	const dataObjResult = asObject(data);
 	if (result.isErr(dataObjResult)) {
 		return dataObjResult;
@@ -111,7 +114,7 @@ const customIsInnerType: Cast<InnerType> = (data) => {
 };
 
 // Same as above, but a bit cleaner
-const customIsInnerType2: Cast<InnerType> = (data) =>
+const customAsInnerType2: Cast<InnerType> = (data) =>
 	result
 		.pipe(asInnerType(data))
 		.then((output) => {
@@ -133,11 +136,11 @@ const asOuterType1 = structure<OuterType>({
 });
 
 const asOuterType2 = structure<OuterType>({
-	b: customIsInnerType,
+	b: customAsInnerType,
 });
 
 const asOuterType3 = structure<OuterType>({
-	b: customIsInnerType2,
+	b: customAsInnerType2,
 });
 
 describe('readme', () => {
@@ -244,6 +247,15 @@ describe('readme', () => {
 		if (result.isOk(badValueResult)) {
 			// This will not be reached
 			iWantAnApiResponse(badValueResult.value);
+		}
+
+		if (isApiResponse(goodValue)) {
+			// This will be called
+			iWantAnApiResponse(goodValue);
+		}
+		if (isApiResponse(badValue)) {
+			// This will not be reached
+			iWantAnApiResponse(badValue);
 		}
 
 		const valueWithBadHeader = {

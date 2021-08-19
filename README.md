@@ -55,6 +55,8 @@ const asApiResponse = structure<ApiResponse>({
 	),
 });
 
+const isApiResponse = isFromAs(asApiResponse);
+
 function iWantAnApiResponse(value: ApiResponse) {
 	console.log(value);
 }
@@ -64,6 +66,10 @@ iWantAnApiResponse(unknownData) // compiler error
 const apiResponseResult = asApiResponse(unknownData);
 if (result.isOk(apiResponseResult)) {
 	iWantAnApiResponse(apiResponseResult.value);
+}
+
+if (isApiResponse(unknownData)) {
+	iWantAnApiResponse(unknownData);
 }
 ```
 
@@ -132,7 +138,7 @@ const asInnerType = structure<InnerType>({
 });
 
 // Also ensures nothing else is in there
-const customIsInnerType: Cast<InnerType> = (data) => {
+const customAsInnerType: Cast<InnerType> = (data) => {
 	const dataObjResult = asObject(data);
 	if (result.isErr(dataObjResult)) {
 		return dataObjResult;
@@ -148,7 +154,7 @@ const customIsInnerType: Cast<InnerType> = (data) => {
 };
 
 // Same as above, but a bit cleaner
-const customIsInnerType2: Cast<InnerType> = (data) =>
+const customAsInnerType2: Cast<InnerType> = (data) =>
 	result
 		.pipe(asInnerType(data))
 		.then((output) => {
@@ -158,4 +164,16 @@ const customIsInnerType2: Cast<InnerType> = (data) =>
 			return castOk(output);
 		})
 		.finish();
+
+const asOuterType1 = structure<OuterType>({
+	b: asInnerType,
+});
+
+const asOuterType2 = structure<OuterType>({
+	b: customAsInnerType,
+});
+
+const asOuterType3 = structure<OuterType>({
+	b: customAsInnerType2,
+});
 ```

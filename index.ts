@@ -35,3 +35,5 @@ export {
 } from './src/combiners';
 
 export { structure, tuple } from './src/structure';
+
+export { isFromAs } from './src/typeguard';
