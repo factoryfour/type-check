@@ -1,13 +1,13 @@
 import { asArray, asObject } from './basic';
-import { castErr, castErrChain, CastResult } from './castResult';
+import { Cast, castErr, castErrChain, castOk } from './castResult';
 import { result } from './result';
 
 export function structure<T extends { [key: string]: unknown }>(
 	asChildTypes: {
-		[K in keyof Required<T>]: (value: unknown) => CastResult<T[K]>;
+		[K in keyof Required<T>]: Cast<T[K]>;
 	},
-): (value: unknown) => CastResult<T> {
-	return (value): CastResult<T> =>
+): Cast<T> {
+	return (value) =>
 		result
 			.pipe(asObject(value))
 			.then((objValue) =>
@@ -18,16 +18,16 @@ export function structure<T extends { [key: string]: unknown }>(
 						.finish(),
 				),
 			)
-			.then(() => result.ok(value as T))
+			.then(() => castOk(value as T))
 			.finish();
 }
 
 export function tuple<T extends unknown[]>(
 	...asChildTypes: {
-		[K in keyof Required<T>]: (value: unknown) => CastResult<T[K]>;
+		[K in keyof Required<T>]: Cast<T[K]>;
 	}
-): (value: unknown) => CastResult<T> {
-	return (value): CastResult<T> =>
+): Cast<T> {
+	return (value) =>
 		result
 			.pipe(asArray(value))
 			.then((arrValue) => {
@@ -44,6 +44,6 @@ export function tuple<T extends unknown[]>(
 						.finish(),
 				);
 			})
-			.then(() => result.ok(value as T))
+			.then(() => castOk(value as T))
 			.finish();
 }

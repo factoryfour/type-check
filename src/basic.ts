@@ -1,5 +1,4 @@
-import { result } from './result';
-import { castErr, CastResult } from './castResult';
+import { castErr, castOk, CastResult } from './castResult';
 
 export function isUnknown(value: unknown): value is unknown {
 	return true;
@@ -34,40 +33,40 @@ export function isArray(value: unknown): value is unknown[] {
 }
 
 export function asUnknown(value: unknown): CastResult<unknown> {
-	return result.ok(value);
+	return castOk(value);
 }
 
 export function asNull(value: unknown): CastResult<null> {
 	if (isNull(value)) {
-		return result.ok(value);
+		return castOk(value);
 	}
 	return castErr('null', value);
 }
 
 export function asUndefined(value: unknown): CastResult<undefined> {
 	if (isUndefined(value)) {
-		return result.ok(value);
+		return castOk(value);
 	}
 	return castErr('undefined', value);
 }
 
 export function asString(value: unknown): CastResult<string> {
 	if (isString(value)) {
-		return result.ok(value);
+		return castOk(value);
 	}
 	return castErr('string', value);
 }
 
 export function asNumber(value: unknown): CastResult<number> {
 	if (isNumber(value)) {
-		return result.ok(value);
+		return castOk(value);
 	}
 	return castErr('number', value);
 }
 
 export function asBoolean(value: unknown): CastResult<boolean> {
 	if (isBoolean(value)) {
-		return result.ok(value);
+		return castOk(value);
 	}
 	return castErr('boolean', value);
 }
@@ -76,14 +75,14 @@ export function asObject(
 	value: unknown,
 ): CastResult<{ [key: string]: unknown }> {
 	if (isObject(value)) {
-		return result.ok(value);
+		return castOk(value);
 	}
 	return castErr('object', value);
 }
 
 export function asArray(value: unknown): CastResult<unknown[]> {
 	if (isArray(value)) {
-		return result.ok(value);
+		return castOk(value);
 	}
 	return castErr('array', value);
 }

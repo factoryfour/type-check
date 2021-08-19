@@ -10,7 +10,7 @@ import {
 	asUnknown,
 	castErr,
 	castErrChain,
-	CastResult,
+	Cast,
 	literal,
 	nullable,
 	objectOf,
@@ -19,6 +19,7 @@ import {
 	structure,
 	tuple,
 	result,
+	castOk,
 } from '../index';
 
 type ApiResponse = {
@@ -94,7 +95,7 @@ const asInnerType = structure<InnerType>({
 });
 
 // Also ensures nothing else is in there
-const customIsInnerType = (data: unknown): CastResult<InnerType> => {
+const customIsInnerType: Cast<InnerType> = (data) => {
 	const dataObjResult = asObject(data);
 	if (result.isErr(dataObjResult)) {
 		return dataObjResult;
@@ -106,18 +107,18 @@ const customIsInnerType = (data: unknown): CastResult<InnerType> => {
 	if (result.isErr(aFieldResult)) {
 		return castErrChain(aFieldResult, 'a');
 	}
-	return result.ok(data as InnerType);
+	return castOk(data as InnerType);
 };
 
 // Same as above, but a bit cleaner
-const customIsInnerType2 = (data: unknown): CastResult<InnerType> =>
+const customIsInnerType2: Cast<InnerType> = (data) =>
 	result
 		.pipe(asInnerType(data))
 		.then((output) => {
 			if (Object.keys(output).length !== 1) {
 				return castErr('{ a: string } without extra keys', data);
 			}
-			return result.ok(output);
+			return castOk(output);
 		})
 		.finish();
 

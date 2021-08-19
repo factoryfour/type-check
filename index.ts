@@ -2,9 +2,9 @@ export type { Ok, Err, Result } from './src/result';
 
 export { result } from './src/result';
 
-export type { CastError, CastResult } from './src/castResult';
+export type { CastError, CastResult, Cast } from './src/castResult';
 
-export { castErr, castErrChain } from './src/castResult';
+export { castOk, castErr, castErrChain } from './src/castResult';
 
 export {
 	isUnknown,

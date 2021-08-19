@@ -1,11 +1,11 @@
 import { asArray, asNull, asObject, asUndefined } from './basic';
-import { castErr, castErrChain, CastResult } from './castResult';
+import { Cast, castErr, castErrChain, castOk, CastResult } from './castResult';
 import { result } from './result';
 
 export function oneOf<T extends unknown[]>(
-	...asChildTypes: { [P in keyof T]: (value: unknown) => CastResult<T[P]> }
-): (value: unknown) => CastResult<T[number]> {
-	return (value): CastResult<T[number]> => {
+	...asChildTypes: { [P in keyof T]: Cast<T[P]> }
+): Cast<T[number]> {
+	return (value) => {
 		const failedTypes = [];
 		for (const asChildType of asChildTypes) {
 			const child = asChildType(value);
@@ -26,32 +26,28 @@ export function oneOf<T extends unknown[]>(
 
 export function literal<T extends string | number | boolean>(
 	...literals: readonly T[]
-): (value: unknown) => CastResult<T> {
+): Cast<T> {
 	const literalsType = literals.map((v) => `${v}`).join(' | ');
-	return (value): CastResult<T> => {
+	return (value) => {
 		if (literals.some((v) => v === value)) {
-			return result.ok(value as T);
+			return castOk(value as T);
 		}
 		return castErr(literalsType, value);
 	};
 }
 
-export function optional<T>(
-	asChildType: (value: unknown) => CastResult<T>,
-): (value: unknown) => CastResult<T | undefined> {
+export function optional<T>(asChildType: Cast<T>): Cast<T | undefined> {
 	return oneOf(asUndefined, asChildType);
 }
 
-export function nullable<T>(
-	asChildType: (value: unknown) => CastResult<T>,
-): (value: unknown) => CastResult<T | null> {
+export function nullable<T>(asChildType: Cast<T>): Cast<T | null> {
 	return oneOf(asNull, asChildType);
 }
 
 function handleChild<T>(
 	key: string | number,
 	item: unknown,
-	asChildType: (value: unknown) => CastResult<T>,
+	asChildType: Cast<T>,
 ): CastResult<T> {
 	return result
 		.pipe(asChildType(item))
@@ -59,10 +55,8 @@ function handleChild<T>(
 		.finish();
 }
 
-export function arrayOf<T>(
-	asChildType: (value: unknown) => CastResult<T>,
-): (value: unknown) => CastResult<T[]> {
-	return (value): CastResult<T[]> =>
+export function arrayOf<T>(asChildType: Cast<T>): Cast<T[]> {
+	return (value) =>
 		result
 			.pipe(asArray(value))
 			.then((arrValue) =>
@@ -70,14 +64,12 @@ export function arrayOf<T>(
 					handleChild(idx, item, asChildType),
 				),
 			)
-			.then(() => result.ok(value as T[]))
+			.then(() => castOk(value as T[]))
 			.finish();
 }
 
-export function objectOf<T>(
-	asChildType: (value: unknown) => CastResult<T>,
-): (value: unknown) => CastResult<{ [key: string]: T }> {
-	return (value): CastResult<{ [key: string]: T }> =>
+export function objectOf<T>(asChildType: Cast<T>): Cast<{ [key: string]: T }> {
+	return (value) =>
 		result
 			.pipe(asObject(value))
 			.then((objValue) =>
@@ -85,6 +77,6 @@ export function objectOf<T>(
 					handleChild(key, objValue[key], asChildType),
 				),
 			)
-			.then(() => result.ok(value as { [key: string]: T }))
+			.then(() => castOk(value as { [key: string]: T }))
 			.finish();
 }

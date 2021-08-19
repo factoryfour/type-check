@@ -8,6 +8,10 @@ export type CastError = {
 
 export type CastResult<T> = Result<T, CastError>;
 
+export type Cast<T> = (value: unknown) => CastResult<T>;
+
+export const castOk = result.ok;
+
 export function castErr(expected: string, received: unknown): Err<CastError> {
 	return result.err(`Value is not of type '${expected}'`, {
 		path: [],
