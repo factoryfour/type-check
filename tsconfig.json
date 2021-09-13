@@ -4,9 +4,11 @@
   ],
   "compilerOptions": {
     "strict": true,
-    "target": "es5",
+    "lib": ["es2018"],
+    "target": "es2018",
     "downlevelIteration": true,
-    "module": "es6",
+    "module": "commonjs",
+    "esModuleInterop": true,
     "moduleResolution": "node",
     "outDir": "lib",
     "declaration": true,
