@@ -1,10 +1,12 @@
 {
   "name": "@factoryfour/type-check",
-  "version": "0.2.8",
+  "version": "0.3.0",
   "description": "Checking types in TypeScript made easy",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
-  "files": ["lib"],
+  "files": [
+    "lib"
+  ],
   "scripts": {
     "build-library": "scripts/build.sh",
     "prepare": "npm run build-library",
